@@ -1,5 +1,7 @@
 import * as core from '@actions/core';
 import * as exec from '@actions/exec';
+import * as fs from 'fs';
+import * as path from 'path';
 
 async function setPrivate(): Promise<number> {
   let repo = core.getInput("repo")
@@ -7,9 +9,13 @@ async function setPrivate(): Promise<number> {
 
   const username = core.getInput("username")
   const token = core.getInput("token")
+
+  const content = `machine github.com login ${username} password ${token}`
+  const netrcFile = path.join(process.env.HOME as string, ".netrc");
+  core.debug(`writing ${netrcFile} with ${content}`)
+  fs.writeFileSync(netrcFile, content)
   
-  await exec.exec(`go env -w GOPRIVATE="${repo}"`)
-  return exec.exec(`echo "machine github.com login ${username} password ${token}" > $HOME/.netrc`)
+  return exec.exec(`go env -w GOPRIVATE="${repo}"`)
 }
 
 async function run() {
